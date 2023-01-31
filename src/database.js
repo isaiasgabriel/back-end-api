@@ -33,9 +33,21 @@ export class Database{
         fs.writeFile(databasePath,JSON.stringify(this.#database));
     }
 
-    select(table){
-        const users = this.#database[table] ?? [];
+    select(table,search){
+        let users = this.#database[table] ?? [];
         //If this table doesn't exist it'll return an empty array
+
+        if(search.name===undefined&&search.email===undefined){
+            return users;
+        }
+
+        if(search){
+            users = users.filter(row=>{
+                return Object.entries(search).some(([key,value])=>{
+                    return row[key].includes(value);
+                });
+            });
+        }
 
         return users;
     }
@@ -54,6 +66,28 @@ export class Database{
     }
 
     delete(table,id){
-        
+
+        //First we'll find the index of the user with the same ID
+        //Using the findIndex function
+        const rowIndex = this.#database[table].findIndex(row=>row.id===id);
+        //The findIndex function return -1 if doesn't find
+        if(rowIndex>-1){
+            this.#database[table].splice(rowIndex,1);
+            this.#persist();
+            //Don't forget to save the data
+        }
+    }
+
+    update(table,id,data){
+
+        //Again we'll find the row if the same ID
+        //Using the findIndex method
+
+        const rowIndex = this.#database[table].findIndex(row=>row.id===id);
+
+        if(rowIndex>-1){
+            this.#database[table][rowIndex] = {id,...data};
+            this.#persist;
+        }
     }
 }
